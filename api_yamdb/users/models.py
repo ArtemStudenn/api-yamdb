@@ -15,6 +15,7 @@ ROLES = (
 
 class User(AbstractUser):
     """Модель пользователя."""
+    
     username = models.CharField(
         unique=True,
         max_length=150,
@@ -70,4 +71,4 @@ class User(AbstractUser):
     class Meta:
         ordering = ('username',)
         verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
