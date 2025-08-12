@@ -18,8 +18,8 @@ class Category(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
-    def __str__(self) -> str:
-        return self.slug
+    def __str__(self):
+        return self.slug[:20]
 
 
 class Genre(models.Model):
@@ -39,8 +39,8 @@ class Genre(models.Model):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
-    def __str__(self) -> str:
-        return self.slug
+    def __str__(self):
+        return self.slug[:20]
 
 
 class Title(models.Model):
@@ -79,5 +79,5 @@ class Title(models.Model):
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
 
-    def __str__(self) -> str:
-        return self.name
+    def __str__(self):
+        return self.name[:20]
