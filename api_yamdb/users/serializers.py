@@ -9,6 +9,7 @@ from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя"""
+    
     class Meta:
         model = User
         fields = (
@@ -24,6 +25,7 @@ class UsersMeSerializer(UserSerializer):
 
 class SignUpSerializer(serializers.Serializer):
     """Сериализатор для регистрации пользователя"""
+    
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+$',
         required=True,
@@ -70,6 +72,7 @@ class SignUpSerializer(serializers.Serializer):
 
 class GetTokenSerializer(serializers.Serializer):
     """Сериализатор для получения токена"""
+    
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)
 
