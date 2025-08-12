@@ -6,6 +6,7 @@ v1_router = DefaultRouter()
 v1_router.register(r'categories', CategoryViewSet, basename='categories')
 v1_router.register(r'genres', GenreViewSet, basename='genres')
 v1_router.register(r'titles', TitleViewSet, basename='titles')
+v1_router.register('users', UserViewSet, basename='users')
 
 urlpatterns = [
     path('v1/', include(v1_router.urls)),
