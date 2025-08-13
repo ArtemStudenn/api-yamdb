@@ -15,6 +15,7 @@ from .serializers import (
 
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для модели пользователя"""
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
@@ -46,6 +47,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class GetTokenView(generics.CreateAPIView):
     """View для получения токена"""
+
     serializer_class = GetTokenSerializer
     permission_classes = (AllowAny,)
 
@@ -57,6 +59,7 @@ class GetTokenView(generics.CreateAPIView):
 
 class SignUpView(generics.CreateAPIView):
     """View для регистрации пользователя"""
+
     serializer_class = SignUpSerializer
     permission_classes = (AllowAny,)
 
