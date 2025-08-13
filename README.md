@@ -64,14 +64,65 @@ python manage.py runserver
 - описан алгоритм самостоятельной регистрации пользователей,
 - указаны возможные роли пользователей с описанием их полномочий.
 
-### Основные эндпойнты:
+### Основные эндпойнты и примеры запросов:
 Регистрация и аутентификация пользователей: `/api/v1/auth/signup/`, `/api/v1/auth/token/`.
+
+*Пример запроса для регистрации пользователя:*
+```
+POST /api/v1/auth/signup/
+```
+```
+{
+  "email": "email@example.com",
+  "username": "username"
+}
+```
 
 Работа с пользователями, изменение данных пользователя: `/api/v1/users/`, `/api/v1/users/me/`.
 
+*Пример запроса для создания пользователя администратором:*
+```
+POST /api/v1/users/
+```
+```
+{
+    "username": "username",
+    "email": "email@example.com",
+    "first_name": "Name",
+    "last_name": "Surname",
+    "bio": "There should be a good story",
+    "role": "user"
+}
+```
+
 Работа с произведениями, категориями и жанрами: `/api/v1/titles/`, `/api/v1/categories/`, `/api/v1/genres/`.
 
+*Пример запроса для создания произведения администратором:*
+```
+POST /api/v1/titles/
+```
+```
+{
+    "name": "title_name",
+    "year": 1975,
+    "description": "title_description",
+    "genre": ["title_genre"],
+    "category": "title_category"
+}
+```
+
 Работа с отзывами и комментариями к ним: `/api/v1/titles/{title_id}/reviews/`, `/api/v1/titles/{title_id}/reviews/{review_id}/comments/`.
+
+*Пример запроса для публикации отзыва на произведение аутентифицированным пользователем:*
+```
+POST /api/v1/titles/{title_id}/reviews/
+```
+```
+{
+    "text": "review_text",
+    "score": 10
+}
+```
 
 ## Разработано командой YaMDB:
 **Караульный Иван** (https://github.com/Warmbank) - произведения, категории, жанры, рейтинги, отзывы и комментарии.
