@@ -13,7 +13,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         data_dir = Path(settings.BASE_DIR) / 'static' / 'data'
-        User = get_user_model()
+        user = get_user_model()
 
         def load(model, filename, rename=None):
             path = data_dir / filename
@@ -27,7 +27,7 @@ class Command(BaseCommand):
                                 row[dst] = row.pop(src)
                     model.objects.get_or_create(**row)
 
-        load(User, 'users.csv')
+        load(user, 'users.csv')
         load(Category, 'category.csv')
         load(Genre, 'genre.csv')
         load(Title, 'titles.csv', rename={'category': 'category_id'})
