@@ -17,7 +17,7 @@ git clone https://github.com/Warmbank/api-yamdb
 ```
 
 ```
-cd api-final-yamdb
+cd api-yamdb
 ```
 
 Cоздать и активировать виртуальное окружение:
