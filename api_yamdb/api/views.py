@@ -25,7 +25,7 @@ from api.serializers import (
     UserSerializer,
     UsersMeSerializer
 )
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
 
