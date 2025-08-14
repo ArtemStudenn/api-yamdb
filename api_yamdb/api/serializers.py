@@ -134,6 +134,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         many=True,
         required=True,
     )
+    year = serializers.IntegerField(required=True)
 
     class Meta:
         model = Title
@@ -163,7 +164,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 class TitleReadCategorySerializer(serializers.ModelSerializer):
     """Вложенный сериализатор категории для Title."""
-
+    
     class Meta:
         model = Category
         fields = ('name', 'slug')
@@ -180,6 +181,7 @@ class TitleReadGenreSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     """Возвращает все поля произведения с вложенными категориями и жанрами."""
 
+    year = serializers.IntegerField()
     category = TitleReadCategorySerializer()
     genre = TitleReadGenreSerializer(many=True)
     rating = serializers.SerializerMethodField()
