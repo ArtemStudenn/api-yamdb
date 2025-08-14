@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
+from .validators import username_validator
+
 USER = 'user'
 MODERATOR = 'moderator'
 ADMIN = 'admin'
@@ -20,8 +22,21 @@ class User(AbstractUser):
         unique=True,
         max_length=150,
         verbose_name='Имя пользователя',
-        help_text='Введите имя пользователя',
-        validators=(RegexValidator(regex=r'^[\w.@+-]+$'),)
+        help_text=(
+            'Введите имя пользователя. '
+            'Только буквы, цифры и символы @/./+/-/_'
+        ),
+        validators=(
+            username_validator,
+            RegexValidator(
+                regex=r'^[\w.@+-]+$',
+                message=(
+                    'Имя пользователя должно содержать только '
+                    'буквы, цифры и символы @/./+/-/_'
+                ),
+                code='invalid'
+            )
+        )
     )
     email = models.EmailField(
         unique=True,
