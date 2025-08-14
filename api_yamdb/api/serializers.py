@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -49,6 +50,20 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             'category',
             'genre'
         )
+
+    def validate_year(self, value):
+        if value is not None and value > timezone.now().year:
+            raise serializers.ValidationError(
+                'Год выпуска не может быть больше текущего.'
+            )
+        return value
+
+    def validate_genre(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                'Укажите хотя бы один жанр.'
+            )
+        return value
 
 
 class TitleReadCategorySerializer(serializers.ModelSerializer):
