@@ -5,10 +5,12 @@ from api.views import (
     CategoryViewSet,
     CommentViewSet,
     GenreViewSet,
+    GetTokenView,
     ReviewViewSet,
+    SignUpView,
     TitleViewSet,
+    UserViewSet
 )
-from users.views import UserViewSet
 
 
 app_name = 'api'
@@ -47,4 +49,6 @@ v1_router.register(
 
 urlpatterns = [
     path('v1/', include(v1_router.urls)),
+    path('v1/auth/signup/', SignUpView.as_view(), name='signup'),
+    path('v1/auth/token/', GetTokenView.as_view(), name='token'),
 ]
