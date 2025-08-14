@@ -136,7 +136,9 @@ class TitleViewSet(viewsets.ModelViewSet):
         write = TitleWriteSerializer(data=request.data)
         write.is_valid(raise_exception=True)
         instance = write.save()
-        instance = Title.objects.annotate(rating=Avg('reviews__score')).get(pk=instance.pk)
+        instance = Title.objects.annotate(
+            rating=Avg('reviews__score')
+        ).get(pk=instance.pk)
         read = TitleReadSerializer(instance)
         return Response(read.data, status=status.HTTP_201_CREATED)
 
@@ -145,7 +147,9 @@ class TitleViewSet(viewsets.ModelViewSet):
         write = TitleWriteSerializer(instance, data=request.data, partial=True)
         write.is_valid(raise_exception=True)
         instance = write.save()
-        instance = Title.objects.annotate(rating=Avg('reviews__score')).get(pk=instance.pk)
+        instance = Title.objects.annotate(
+            rating=Avg('reviews__score')
+        ).get(pk=instance.pk)
         read = TitleReadSerializer(instance)
         return Response(read.data, status=status.HTTP_200_OK)
 

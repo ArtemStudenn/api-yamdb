@@ -164,7 +164,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 class TitleReadCategorySerializer(serializers.ModelSerializer):
     """Вложенный сериализатор категории для Title."""
-    
+
     class Meta:
         model = Category
         fields = ('name', 'slug')
