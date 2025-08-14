@@ -125,17 +125,29 @@ class TitleViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
     def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
-            return TitleReadSerializer
-        return TitleWriteSerializer
+        if self.action in ('create', 'partial_update', 'update'):
+            return TitleWriteSerializer
+        return TitleReadSerializer
 
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .annotate(rating=Avg('reviews__score'))
-            .order_by('id')
-        )
+        return super().get_queryset().annotate(rating=Avg('reviews__score'))
+
+    def create(self, request, *args, **kwargs):
+        write = TitleWriteSerializer(data=request.data)
+        write.is_valid(raise_exception=True)
+        instance = write.save()
+        instance = Title.objects.annotate(rating=Avg('reviews__score')).get(pk=instance.pk)
+        read = TitleReadSerializer(instance)
+        return Response(read.data, status=status.HTTP_201_CREATED)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        write = TitleWriteSerializer(instance, data=request.data, partial=True)
+        write.is_valid(raise_exception=True)
+        instance = write.save()
+        instance = Title.objects.annotate(rating=Avg('reviews__score')).get(pk=instance.pk)
+        read = TitleReadSerializer(instance)
+        return Response(read.data, status=status.HTTP_200_OK)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
