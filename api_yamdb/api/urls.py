@@ -47,8 +47,12 @@ v1_router.register(
     basename='comments',
 )
 
+auth_urls = [
+    path('signup/', SignUpView.as_view(), name='signup'),
+    path('token/', GetTokenView.as_view(), name='token'),
+]
+
 urlpatterns = [
     path('v1/', include(v1_router.urls)),
-    path('v1/auth/signup/', SignUpView.as_view(), name='signup'),
-    path('v1/auth/token/', GetTokenView.as_view(), name='token'),
+    path('v1/auth/', include(auth_urls)),
 ]

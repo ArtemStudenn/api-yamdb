@@ -31,7 +31,7 @@ User = get_user_model()
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """ViewSet для модели пользователя"""
+    """ViewSet для модели пользователя."""
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -63,7 +63,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class GetTokenView(generics.CreateAPIView):
-    """View для получения токена"""
+    """View для получения токена."""
 
     serializer_class = GetTokenSerializer
     permission_classes = (AllowAny,)
@@ -71,11 +71,12 @@ class GetTokenView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(serializer.save(), status=status.HTTP_200_OK)
+        token = serializer.save()
+        return Response(token, status=status.HTTP_200_OK)
 
 
 class SignUpView(generics.CreateAPIView):
-    """View для регистрации пользователя"""
+    """View для регистрации пользователя."""
 
     serializer_class = SignUpSerializer
     permission_classes = (AllowAny,)
