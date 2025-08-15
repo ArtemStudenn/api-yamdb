@@ -15,17 +15,34 @@ class Command(BaseCommand):
         data_dir = Path(settings.BASE_DIR) / 'static' / 'data'
         user = get_user_model()
 
-        def load(model, filename, rename=None):
+        def load(model, filename, rename=None, batch_size=1000):
             path = data_dir / filename
             if not path.exists():
                 return
+
+            objs = []
             with path.open(encoding='utf-8', newline='') as file:
                 for row in csv.DictReader(file):
                     if rename:
                         for src, dst in rename.items():
                             if src in row:
                                 row[dst] = row.pop(src)
-                    model.objects.get_or_create(**row)
+                    objs.append(model(**row))
+
+                    if len(objs) >= batch_size:
+                        model.objects.bulk_create(
+                            objs,
+                            ignore_conflicts=True,
+                            batch_size=batch_size
+                        )
+                        objs.clear()
+
+            if objs:
+                model.objects.bulk_create(
+                    objs,
+                    ignore_conflicts=True,
+                    batch_size=batch_size
+                )
 
         load(user, 'users.csv')
         load(Category, 'category.csv')
