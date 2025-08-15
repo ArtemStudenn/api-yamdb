@@ -1,19 +1,22 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
 
+from .mixins import ValidateUsernameMixin
 from reviews.models import Category, Comment, Genre, Review, Title
+from users.constants import MAX_USERNAME_LENGTH, MAX_EMAIL_LENGTH
 
 
 User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели пользователя"""
+    """Сериализатор для модели пользователя."""
 
     class Meta:
         model = User
@@ -23,35 +26,27 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UsersMeSerializer(UserSerializer):
-    """Сериализатор для эндпойта users/me"""
+    """Сериализатор для эндпойта users/me."""
+
     class Meta(UserSerializer.Meta):
         read_only_fields = ('role',)
 
 
-class SignUpSerializer(serializers.Serializer):
-    """Сериализатор для регистрации пользователя"""
+class SignUpSerializer(serializers.Serializer, ValidateUsernameMixin):
+    """Сериализатор для регистрации пользователя."""
 
-    username = serializers.RegexField(
-        regex=r'^[\w.@+-]+$',
+    username = serializers.CharField(
         required=True,
-        max_length=50,
-        error_messages={
-            'invalid':
-            'В имени пользователя допустимы буквы, цифры и символы @/./+/-/_'
-        }
+        max_length=MAX_USERNAME_LENGTH,
     )
     email = serializers.EmailField(
         required=True,
-        max_length=150
+        max_length=MAX_EMAIL_LENGTH
     )
 
     def validate(self, data):
         username = data['username']
         email = data['email']
-        if username.lower() == 'me':
-            raise serializers.ValidationError(
-                'Данное имя пользователя недоступно'
-            )
         if User.objects.filter(username=username).exclude(
             email=email
         ).exists():
@@ -74,17 +69,17 @@ class SignUpSerializer(serializers.Serializer):
         user.confirmation_code = default_token_generator.make_token(user)
         user.save()
         send_mail(
-            subject='Код подтверждения YaMDb',
+            subject='YaMDb confirmation code',
             message=f'Ваш код подтверждения: {user.confirmation_code}',
             recipient_list=(user.email,),
-            from_email=None,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             fail_silently=False
         )
         return user
 
 
 class GetTokenSerializer(serializers.Serializer):
-    """Сериализатор для получения токена"""
+    """Сериализатор для получения токена."""
 
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)
