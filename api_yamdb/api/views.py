@@ -11,7 +11,7 @@ from api.filters import TitleFilter
 from api.permissions import (
     IsAdmin,
     IsAdminOrReadOnly,
-    IsAuthorModeratorAdminOrReadOnly
+    IsAuthorOrAdminOrModeratorOrReadOnly
 )
 from api.serializers import (
     CategorySerializer,
@@ -120,9 +120,15 @@ class TitleViewSet(viewsets.ModelViewSet):
     http_method_names = ('get', 'post', 'patch', 'delete')
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter
+    )
     filterset_class = TitleFilter
     search_fields = ('name',)
+    ordering_fields = ('name', 'year', 'rating')
+    ordering = ('name',)
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update', 'update'):
@@ -130,28 +136,12 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleReadSerializer
 
     def get_queryset(self):
-        return super().get_queryset().annotate(rating=Avg('reviews__score'))
-
-    def create(self, request, *args, **kwargs):
-        write = TitleWriteSerializer(data=request.data)
-        write.is_valid(raise_exception=True)
-        instance = write.save()
-        instance = Title.objects.annotate(
-            rating=Avg('reviews__score')
-        ).get(pk=instance.pk)
-        read = TitleReadSerializer(instance)
-        return Response(read.data, status=status.HTTP_201_CREATED)
-
-    def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        write = TitleWriteSerializer(instance, data=request.data, partial=True)
-        write.is_valid(raise_exception=True)
-        instance = write.save()
-        instance = Title.objects.annotate(
-            rating=Avg('reviews__score')
-        ).get(pk=instance.pk)
-        read = TitleReadSerializer(instance)
-        return Response(read.data, status=status.HTTP_200_OK)
+        return (
+            super()
+            .get_queryset()
+            .annotate(rating=Avg('reviews__score'))
+            .order_by(*self.ordering)
+        )
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -159,15 +149,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     http_method_names = ('get', 'post', 'patch', 'delete', 'head', 'options')
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
+    permission_classes = (IsAuthorOrAdminOrModeratorOrReadOnly,)
+
+    def get_title(self):
+        return get_object_or_404(Title, pk=self.kwargs['title_id'])
 
     def get_queryset(self):
-        title_id = self.kwargs.get('title_id')
-        return Review.objects.filter(title_id=title_id)
+        return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user, title=title)
+        serializer.save(author=self.request.user, title=self.get_title())
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -175,18 +166,17 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     http_method_names = ('get', 'post', 'patch', 'delete', 'head', 'options')
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
+    permission_classes = (IsAuthorOrAdminOrModeratorOrReadOnly,)
+
+    def get_review(self):
+        return get_object_or_404(
+            Review,
+            pk=self.kwargs['review_id'],
+            title_id=self.kwargs['title_id'],
+        )
 
     def get_queryset(self):
-        title_id = self.kwargs.get('title_id')
-        review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, pk=review_id, title_id=title_id)
-        return review.comments.all()
+        return self.get_review().comments.all()
 
     def perform_create(self, serializer):
-        review = get_object_or_404(
-            Review,
-            pk=self.kwargs.get('review_id'),
-            title_id=self.kwargs.get('title_id'),
-        )
-        serializer.save(author=self.request.user, review=review)
+        serializer.save(author=self.request.user, review=self.get_review())
