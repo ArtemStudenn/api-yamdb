@@ -147,6 +147,9 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             'genre'
         )
 
+    def to_representation(self, instance):
+        return TitleReadSerializer(instance).data
+
     def validate_year(self, value):
         if value is not None and value > timezone.now().year:
             raise serializers.ValidationError(
@@ -162,29 +165,12 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         return value
 
 
-class TitleReadCategorySerializer(serializers.ModelSerializer):
-    """Вложенный сериализатор категории для Title."""
-
-    class Meta:
-        model = Category
-        fields = ('name', 'slug')
-
-
-class TitleReadGenreSerializer(serializers.ModelSerializer):
-    """Вложенный сериализатор жанра для Title."""
-
-    class Meta:
-        model = Genre
-        fields = ('name', 'slug')
-
-
 class TitleReadSerializer(serializers.ModelSerializer):
     """Возвращает все поля произведения с вложенными категориями и жанрами."""
 
-    year = serializers.IntegerField()
-    category = TitleReadCategorySerializer()
-    genre = TitleReadGenreSerializer(many=True)
-    rating = serializers.SerializerMethodField()
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
+    rating = serializers.IntegerField(read_only=True, allow_null=True)
 
     class Meta:
         model = Title
@@ -197,10 +183,6 @@ class TitleReadSerializer(serializers.ModelSerializer):
             'genre',
             'rating'
         )
-
-    def get_rating(self, obj):
-        val = getattr(obj, 'rating', None)
-        return int(val) if val is not None else None
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -222,10 +204,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, attrs):
-        request = self.context['request']
-        view = self.context['view']
-        if request.method == 'POST':
-            title_id = view.kwargs.get('title_id')
+        request = self.context.get('request')
+        if request and self.instance is None:
+            title_id = self.context['view'].kwargs.get('title_id')
             if Review.objects.filter(
                 title_id=title_id,
                 author=request.user
