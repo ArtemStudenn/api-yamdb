@@ -24,9 +24,8 @@ class IsAuthorOrAdminOrModeratorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        user = request.user
         return (
-            obj.author == user
-            or getattr(user, 'is_moderator', False)
-            or getattr(user, 'is_admin', False)
+            obj.author == request.user
+            or request.user.is_moderator
+            or request.user.is_admin
         )

@@ -7,22 +7,16 @@ from django.utils import timezone
 from .constants import (
     MIN_SCORE,
     MAX_SCORE,
-    MAX_NAME_LEN,
+    MAX_STRING_LEN,
     SLUG_DISPLAY_MAX_LEN,
 )
+from .validators import validate_not_future_year
 
 
-def validate_not_future_year(value: int):
-    if value is None:
-        raise ValidationError('Укажите год выпуска.')
-    if value > timezone.now().year:
-        raise ValidationError('Год не может быть больше текущего.')
-
-
-class CategoryGenreSlugAbstract(models.Model):
+class NameSlugAbstract(models.Model):
     """Абстрактная моель для категории и жанра."""
 
-    name = models.CharField(max_length=MAX_NAME_LEN, verbose_name='Название')
+    name = models.CharField(max_length=MAX_STRING_LEN, verbose_name='Название')
     slug = models.SlugField(unique=True, verbose_name='Слаг')
 
     class Meta:
@@ -33,7 +27,7 @@ class CategoryGenreSlugAbstract(models.Model):
         return self.slug[:SLUG_DISPLAY_MAX_LEN]
 
 
-class ReviewCommentAbstract(models.Model):
+class AuthorTextPubDateAbstract(models.Model):
     """Абстрактная моель для комментариев и оценки."""
 
     text = models.TextField(verbose_name='Текст')
@@ -52,18 +46,18 @@ class ReviewCommentAbstract(models.Model):
         ordering = ('-pub_date',)
 
 
-class Category(CategoryGenreSlugAbstract):
+class Category(NameSlugAbstract):
     """Категория произведений."""
 
-    class Meta(CategoryGenreSlugAbstract.Meta):
+    class Meta(NameSlugAbstract.Meta):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
 
-class Genre(CategoryGenreSlugAbstract):
+class Genre(NameSlugAbstract):
     """Жанр произведений."""
 
-    class Meta(CategoryGenreSlugAbstract.Meta):
+    class Meta(NameSlugAbstract.Meta):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -72,18 +66,16 @@ class Title(models.Model):
     """Произведение."""
 
     name = models.CharField(
-        max_length=MAX_NAME_LEN,
+        max_length=MAX_STRING_LEN,
         verbose_name='Название произведения'
     )
-    year = models.PositiveSmallIntegerField(
+    year = models.SmallIntegerField(
         validators=[validate_not_future_year],
         db_index=True,
         null=True,
-        blank=False,
         verbose_name='Год выпуска'
     )
     description = models.TextField(
-        blank=False,
         verbose_name='Описание'
     )
     category = models.ForeignKey(
@@ -91,13 +83,11 @@ class Title(models.Model):
         related_name='titles',
         on_delete=models.SET_NULL,
         null=True,
-        blank=False,
         verbose_name='Категория'
     )
     genre = models.ManyToManyField(
         Genre,
         related_name='titles',
-        blank=False,
         verbose_name='Жанры'
     )
 
@@ -110,7 +100,7 @@ class Title(models.Model):
         return self.name[:SLUG_DISPLAY_MAX_LEN]
 
 
-class Review(ReviewCommentAbstract):
+class Review(AuthorTextPubDateAbstract):
     """Отзыв пользователя на произведение (1..10)."""
 
     title = models.ForeignKey(
@@ -130,7 +120,7 @@ class Review(ReviewCommentAbstract):
         verbose_name='Оценка',
     )
 
-    class Meta(ReviewCommentAbstract.Meta):
+    class Meta(AuthorTextPubDateAbstract.Meta):
         default_related_name = 'reviews'
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
@@ -145,7 +135,7 @@ class Review(ReviewCommentAbstract):
         return f'{self.author} — {self.title} — {self.score}'
 
 
-class Comment(ReviewCommentAbstract):
+class Comment(AuthorTextPubDateAbstract):
     """Комментарий к отзыву."""
 
     review = models.ForeignKey(
@@ -154,7 +144,7 @@ class Comment(ReviewCommentAbstract):
         verbose_name='Отзыв',
     )
 
-    class Meta(ReviewCommentAbstract.Meta):
+    class Meta(AuthorTextPubDateAbstract.Meta):
         default_related_name = 'comments'
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
