@@ -5,7 +5,7 @@ from django.db import models
 from .constants import (
     MIN_SCORE,
     MAX_SCORE,
-    MAX_STRING_LEN,
+    MAX_CHARFIELD_LEN,
     SLUG_DISPLAY_MAX_LEN,
 )
 from .validators import validate_not_future_year
@@ -14,7 +14,10 @@ from .validators import validate_not_future_year
 class NameSlugAbstract(models.Model):
     """Абстрактная моель для категории и жанра."""
 
-    name = models.CharField(max_length=MAX_STRING_LEN, verbose_name='Название')
+    name = models.CharField(
+        max_length=MAX_CHARFIELD_LEN,
+        verbose_name='Название'
+    )
     slug = models.SlugField(unique=True, verbose_name='Слаг')
 
     class Meta:
@@ -64,11 +67,11 @@ class Title(models.Model):
     """Произведение."""
 
     name = models.CharField(
-        max_length=MAX_STRING_LEN,
+        max_length=MAX_CHARFIELD_LEN,
         verbose_name='Название произведения'
     )
     year = models.SmallIntegerField(
-        validators=[validate_not_future_year],
+        validators=(validate_not_future_year,),
         db_index=True,
         null=True,
         verbose_name='Год выпуска'
